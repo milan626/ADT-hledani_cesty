@@ -52,10 +52,9 @@ def load_graph(filepath):
 def print_queue(q : PriorityQueue):
     pass
     
-def main():
+def main(start_node, end_node, graph):
     
-    graph = generate_graph()
-    spanning_tree = set()
+    # spanning_tree = set()
     closed = set()
     q = PriorityQueue()
 
@@ -67,9 +66,9 @@ def main():
         predecessors[n] = None
 
 
-    q.put((0, (0,0))) # vzdalenost, konkretni node
+    q.put((0, start_node)) # vzdalenost, konkretni node
 
-    distances[(0,0)] = 0
+    distances[start_node] = 0
 
     painter = adthelpers.painter.Painter(graph, q, closed, None, distances= distances)
 
@@ -97,6 +96,7 @@ def main():
                 # print(soused)
                 q.put((new_distance, soused))
                 # print(distances[soused])
+        # painter.draw_graph(active_node)
 
 
             # sousedi_souseda = graph.edges(e[1])
@@ -109,8 +109,7 @@ def main():
     
     # print(distances)
     # print(predecessors)
-    # get_path((2,2), predecessors)
-    # painter.draw_graph(active_node)
+    get_path(end_node, predecessors)
 
 def get_path(cil, predecessors):
     path = predecessors[cil]
@@ -204,26 +203,27 @@ def split_LineString(original):
 if __name__ == '__main__':
     
 
-    linestring = "LINESTRING(13.2493302001435 49.764380533239,13.249074682493 49.7658087519211,13.2488225160078 49.7674230526761,13.2485899684292 49.7692554591859,13.248584957672 49.7692712940434,13.2483006280357 49.7698227628131,13.2480651174741 49.7705679279674,13.2479923746268 49.7715163332597,13.2482168296308 49.7721304869104,13.2486411097935 49.7726666339142,13.2486415190555 49.7726671566612,13.2494821842308 49.7737525730256,13.2500302202536 49.7741557317799)"
+    # linestring = "LINESTRING(13.2493302001435 49.764380533239,13.249074682493 49.7658087519211,13.2488225160078 49.7674230526761,13.2485899684292 49.7692554591859,13.248584957672 49.7692712940434,13.2483006280357 49.7698227628131,13.2480651174741 49.7705679279674,13.2479923746268 49.7715163332597,13.2482168296308 49.7721304869104,13.2486411097935 49.7726666339142,13.2486415190555 49.7726671566612,13.2494821842308 49.7737525730256,13.2500302202536 49.7741557317799)"
     # print(get_distance(linestring))
 
-    graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
-
-    print("Data loaded")
-    while(True):
-        inp = input()
-        edges = graph.edges(int(inp))
-        print(edges)
-
-        print("Nodes:")
-        for start,end in edges:
-            print("-------")
-            print(nodes[int(start)].linestring)
-            print(nodes[int(end)].linestring)
-            print(graph.get_edge_data(start, end))
-            
+    # graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
     
-    # main()
+
+    # print("Data loaded")
+    # while(True):
+    #     inp = input()
+    #     edges = graph.edges(int(inp))
+    #     print(edges)
+
+    #     print("Nodes:")
+    #     for start,end in edges:
+    #         print("-------")
+    #         print(nodes[int(start)].linestring)
+    #         print(nodes[int(end)].linestring)
+    #         print(graph.get_edge_data(start, end))
+            
+    graph = generate_graph()
+    main((0,0), (2,2), graph)
 
     """
         Nyní bych měl mít správně načtený graf snad, nutno ještě ověřit
