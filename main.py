@@ -3,6 +3,8 @@
 # https://github.com/JakubSido/adthelpers
 # pip install git+
 
+from wktplot.plots.osm import OpenStreetMapsPlot
+
 from shapely.wkt import loads
 import geopy.distance as geoD
 import adthelpers
@@ -181,6 +183,26 @@ def get_distance(long_ls):
 
     return distance
 
+def invert_linestring(original):
+    prefix = "LINESTRING("
+    postfix = ")"
+    result = prefix
+    original = original.replace(prefix, "").strip()
+    original = original.replace(postfix, "")
+    original = original.replace('\"', '')    
+    splitted = original.split(",")
+
+    for i in range(0, len(splitted)):
+        long, lat = splitted[i].split(" ")
+        result += lat + " " + long
+
+        if(i < len(splitted)-1):
+            result += ", "
+
+    result += postfix
+    return result    
+
+
 def split_LineString(original):
     result = list()
     prefix = "LINESTRING("
@@ -200,7 +222,7 @@ def split_LineString(original):
 
     return result
 
-def get_final_distance(path, nodes, graph):
+def get_final_distance(path, nodes, graph, plot):
     final_distance = 0
     i = 0
 
@@ -215,7 +237,8 @@ def get_final_distance(path, nodes, graph):
                 edge_data = graph.get_edge_data(from_node_id, to_node_id)
                 length = edge_data['weight']
                 edge_id, WKT = edge_data['edge_data']
-                WKT = WKT.replace('\"', "")
+
+                plot.add_shape(invert_linestring(WKT), line_color="blue", line_alpha=0.8, line_width=5)
 
                 file_e.write(WKT + ",")
 
@@ -228,21 +251,27 @@ def get_final_distance(path, nodes, graph):
             file.write(nodes[path[-1]].linestring)
 
 
-    print("Celkova vzdalenost: " + str(final_distance))    
-    print(len(path), i)
+    plot.save()
+
+    print("Celkova vzdalenost: " + str(final_distance))
 
 
     # linestring = "LINESTRING(13.2493302001435 49.764380533239,13.249074682493 49.7658087519211,13.2488225160078 49.7674230526761,13.2485899684292 49.7692554591859,13.248584957672 49.7692712940434,13.2483006280357 49.7698227628131,13.2480651174741 49.7705679279674,13.2479923746268 49.7715163332597,13.2482168296308 49.7721304869104,13.2486411097935 49.7726666339142,13.2486415190555 49.7726671566612,13.2494821842308 49.7737525730256,13.2500302202536 49.7741557317799)"
     # print(get_distance(linestring))
 def main():
     graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
-    start_node = 4559
+    start_node = 4569
     end_node = 4651
 
     distances, predecessors = dijkstra(start_node, end_node, graph)
     path = get_path(end_node, predecessors)
     
-    get_final_distance(path, nodes, graph)
+    plot = OpenStreetMapsPlot("Open Street Map Plot",height=1000,width=1000,)
+    get_final_distance(path, nodes, graph, plot)
+    plot.show()
+    while(True):
+        pass
+
     
 
 if __name__ == '__main__':
@@ -266,5 +295,6 @@ if __name__ == '__main__':
     # main((0,0), (2,2), graph)
 
     """
+    test - hledani nejkratsi cesty a minimalni kostry
 
     """
