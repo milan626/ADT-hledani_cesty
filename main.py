@@ -42,7 +42,7 @@ def generate_graph():
     return graph
 
 
-def load_graph(filepath):
+def load_graphs(filepath):
     G = nx.DiGraph()
     # implement
     # bude priste
@@ -109,7 +109,7 @@ def main(start_node, end_node, graph):
     
     # print(distances)
     # print(predecessors)
-    get_path(end_node, predecessors)
+    return get_path(end_node, predecessors)
 
 def get_path(cil, predecessors):
     path = predecessors[cil]
@@ -120,6 +120,7 @@ def get_path(cil, predecessors):
         path = predecessors[path]
 
     print("Celkova cesta: ",cesta)
+    return cesta
         
 def load_graph(edges_path, nodes_path):
     G = nx.DiGraph()
@@ -206,7 +207,29 @@ if __name__ == '__main__':
     # linestring = "LINESTRING(13.2493302001435 49.764380533239,13.249074682493 49.7658087519211,13.2488225160078 49.7674230526761,13.2485899684292 49.7692554591859,13.248584957672 49.7692712940434,13.2483006280357 49.7698227628131,13.2480651174741 49.7705679279674,13.2479923746268 49.7715163332597,13.2482168296308 49.7721304869104,13.2486411097935 49.7726666339142,13.2486415190555 49.7726671566612,13.2494821842308 49.7737525730256,13.2500302202536 49.7741557317799)"
     # print(get_distance(linestring))
 
-    # graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
+    graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
+    path = main(4651,4659,graph)
+    
+    final_distance = 0
+    i = 0
+
+    with open("output.txt", "w") as file:
+
+        for p in range(len(path)-1):
+            # print(path[i])
+            to_node_id = int(path[i])
+            i += 1
+            # print(path[i])
+            from_node_id = int(path[i])
+            length = graph.get_edge_data(from_node_id, to_node_id)['weight']
+            text = nodes[from_node_id].linestring + ", "+ nodes[to_node_id].linestring + " == "+ str(length) +"\n"
+            file.write(text)
+
+            final_distance += length
+
+
+    print("Celkova vzdalenost: " + str(final_distance))    
+    print(len(path), i)
     
 
     # print("Data loaded")
@@ -221,9 +244,10 @@ if __name__ == '__main__':
     #         print(nodes[int(start)].linestring)
     #         print(nodes[int(end)].linestring)
     #         print(graph.get_edge_data(start, end))
-            
-    graph = generate_graph()
-    main((0,0), (2,2), graph)
+    # print("(////////////////////////////")
+
+    # graph = generate_graph()
+    # main((0,0), (2,2), graph)
 
     """
         Nyní bych měl mít správně načtený graf snad, nutno ještě ověřit
