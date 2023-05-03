@@ -52,7 +52,7 @@ def load_graphs(filepath):
 def print_queue(q : PriorityQueue):
     pass
     
-def main(start_node, end_node, graph):
+def dijkstra(start_node, end_node, graph):
     
     # spanning_tree = set()
     closed = set()
@@ -70,7 +70,7 @@ def main(start_node, end_node, graph):
 
     distances[start_node] = 0
 
-    painter = adthelpers.painter.Painter(graph, q, closed, None, distances= distances)
+    # painter = adthelpers.painter.Painter(graph, q, closed, None, distances= distances)
 
     while(q.qsize() > 0):
 
@@ -109,7 +109,7 @@ def main(start_node, end_node, graph):
     
     # print(distances)
     # print(predecessors)
-    return get_path(end_node, predecessors)
+    return distances, predecessors
 
 def get_path(cil, predecessors):
     path = predecessors[cil]
@@ -134,8 +134,8 @@ def load_graph(edges_path, nodes_path):
             if line.strip() == "":
                 continue
 
-            node_id,source,target,capacity,isvalid,WKT = line.split(",", 5)
-            G.add_edge(int(source), int(target), weight=get_distance(WKT))
+            edge_id,source,target,capacity,isvalid,WKT = line.split(",", 5)
+            G.add_edge(int(source), int(target), weight=get_distance(WKT), edge_data=(edge_id, WKT))
 
     return G, nodes
 
@@ -146,7 +146,7 @@ def load_graph(edges_path, nodes_path):
 
 # aproxiamce kouli,  vzdalenost dopocitat z line stringu, knihovna 
 # 4651 hradek
-# 4659 zbuch - vypocitat jejich cestu
+# 4559 zbuch - vypocitat jejich cestu
 # v edges je automatickz jednosmerna cesta
 # sirka a delka jsou prohozeni v souborech
 
@@ -200,37 +200,53 @@ def split_LineString(original):
 
     return result
 
-
-if __name__ == '__main__':
-    
-
-    # linestring = "LINESTRING(13.2493302001435 49.764380533239,13.249074682493 49.7658087519211,13.2488225160078 49.7674230526761,13.2485899684292 49.7692554591859,13.248584957672 49.7692712940434,13.2483006280357 49.7698227628131,13.2480651174741 49.7705679279674,13.2479923746268 49.7715163332597,13.2482168296308 49.7721304869104,13.2486411097935 49.7726666339142,13.2486415190555 49.7726671566612,13.2494821842308 49.7737525730256,13.2500302202536 49.7741557317799)"
-    # print(get_distance(linestring))
-
-    graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
-    path = main(4651,4659,graph)
-    
+def get_final_distance(path, nodes, graph):
     final_distance = 0
     i = 0
 
     with open("output.txt", "w") as file:
+        with open("output_edges.txt", "w") as file_e:
+            for p in range(len(path)-1):
+                # print(path[i])
+                to_node_id = int(path[i])
+                i += 1
+                # print(path[i])
+                from_node_id = int(path[i])
+                edge_data = graph.get_edge_data(from_node_id, to_node_id)
+                length = edge_data['weight']
+                edge_id, WKT = edge_data['edge_data']
+                WKT = WKT.replace('\"', "")
 
-        for p in range(len(path)-1):
-            # print(path[i])
-            to_node_id = int(path[i])
-            i += 1
-            # print(path[i])
-            from_node_id = int(path[i])
-            length = graph.get_edge_data(from_node_id, to_node_id)['weight']
-            text = nodes[from_node_id].linestring + ", "+ nodes[to_node_id].linestring + " == "+ str(length) +"\n"
-            file.write(text)
+                file_e.write(WKT + ",")
 
-            final_distance += length
+                text = nodes[to_node_id].linestring + ",\n"
+                # text = nodes[from_node_id].linestring + ", "+ nodes[to_node_id].linestring + ",\n"
+                file.write(text)
+
+                final_distance += length
+
+            file.write(nodes[path[-1]].linestring)
 
 
     print("Celkova vzdalenost: " + str(final_distance))    
     print(len(path), i)
+
+
+    # linestring = "LINESTRING(13.2493302001435 49.764380533239,13.249074682493 49.7658087519211,13.2488225160078 49.7674230526761,13.2485899684292 49.7692554591859,13.248584957672 49.7692712940434,13.2483006280357 49.7698227628131,13.2480651174741 49.7705679279674,13.2479923746268 49.7715163332597,13.2482168296308 49.7721304869104,13.2486411097935 49.7726666339142,13.2486415190555 49.7726671566612,13.2494821842308 49.7737525730256,13.2500302202536 49.7741557317799)"
+    # print(get_distance(linestring))
+def main():
+    graph, nodes = load_graph("data/pilsen_edges.csv", "data/pilsen_nodes.csv")
+    start_node = 4559
+    end_node = 4651
+
+    distances, predecessors = dijkstra(start_node, end_node, graph)
+    path = get_path(end_node, predecessors)
     
+    get_final_distance(path, nodes, graph)
+    
+
+if __name__ == '__main__':
+    main()
 
     # print("Data loaded")
     # while(True):
@@ -250,6 +266,5 @@ if __name__ == '__main__':
     # main((0,0), (2,2), graph)
 
     """
-        Nyní bych měl mít správně načtený graf snad, nutno ještě ověřit
-        Nody v grafu jsou identifikovatelný dle IDček
+
     """
